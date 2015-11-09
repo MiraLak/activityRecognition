@@ -6,6 +6,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.tree.model.DecisionTreeModel;
+import org.apache.spark.mllib.tree.model.RandomForestModel;
 
 
 public class FeatureService {
@@ -63,14 +64,19 @@ public class FeatureService {
                     avgTimePeak,
                     difference
             };
-
-
         }
 
         return Vectors.dense(features);
     }
 
     public static String predict(DecisionTreeModel model, Vector feature) {
+
+        double prediction = model.predict(feature);
+
+        return ActivityType.fromPrediction((int) prediction);
+    }
+
+    public static String predict(RandomForestModel model, Vector feature) {
 
         double prediction = model.predict(feature);
 

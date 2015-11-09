@@ -30,12 +30,12 @@ public class ActivityRandomForest {
         int numClasses = ActivityType.values().length;
         String featureSubsetStrategy = "auto";
         String impurity = "gini";
-        int maxDepth = 13;
+        int maxDepth = 20;
         int maxBins = 32;
 
         // create model
         RandomForestModel model = org.apache.spark.mllib.tree.RandomForest.trainClassifier(trainingData, numClasses, categoricalFeaturesInfo, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins, 12345);
-        model.save(sc.sc(), "predictionModel/RandomForest/trainingOne");
+        model.save(sc.sc(), "predictionModel/RandomForest/training_acceleration_3");
 
         // Compute classification accuracy on test data
         final long correctPredictionCount = testData.mapToPair(p -> new Tuple2<>(model.predict(p.features()), p.label()))

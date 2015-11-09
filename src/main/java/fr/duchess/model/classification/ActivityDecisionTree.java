@@ -28,12 +28,12 @@ public class ActivityDecisionTree {
         Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<>();
         int numClasses = ActivityType.values().length; //num of classes = num of activity to predict
         String impurity = "gini"; //measure of the homogeneity of the labels at the node ∑Ci=1fi(1−fi)
-        int maxDepth = 13;
+        int maxDepth = 20;
         int maxBins = 32; //minimum value for bins
 
         // create model
         final DecisionTreeModel model = DecisionTree.trainClassifier(trainingData, numClasses, categoricalFeaturesInfo, impurity, maxDepth, maxBins);
-        model.save(sc.sc(), "predictionModel/DecisionTree/trainingOne");
+        model.save(sc.sc(), "predictionModel/DecisionTree/training_acceleration_3");
 
         // Compute classification accuracy on test data
         final long correctPredictionCount = testData.mapToPair(p -> new Tuple2<>(model.predict(p.features()), p.label()))

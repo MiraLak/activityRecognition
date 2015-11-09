@@ -7,7 +7,7 @@ import fr.duchess.model.PredictionResult;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.linalg.Vector;
-import org.apache.spark.mllib.tree.model.DecisionTreeModel;
+import org.apache.spark.mllib.tree.model.RandomForestModel;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.receiver.Receiver;
 
@@ -17,8 +17,8 @@ import java.util.List;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
-import static fr.duchess.service.PredictionService.DECISION_TREE_PREDICTION_MODEL;
-import static fr.duchess.service.PredictionService.ROWS_NUMBER;
+import static fr.duchess.service.PredictionService.ACCELERATION_TOTAL;
+import static fr.duchess.service.PredictionService.RANDOM_FOREST_PREDICTION_MODEL;
 
 
 public class CassandraReceiver extends Receiver<String>{
@@ -58,12 +58,14 @@ public class CassandraReceiver extends Receiver<String>{
         try {
 
             CassandraJavaRDD<CassandraRow> cassandraRowsRDD = javaFunctions(sc).cassandraTable("activityrecognition", "acceleration");
-            DecisionTreeModel model = DecisionTreeModel.load(sc.sc(), DECISION_TREE_PREDICTION_MODEL);
+
+            //DecisionTreeModel model = DecisionTreeModel.load(sc.sc(), DECISION_TREE_PREDICTION_MODEL);
+            RandomForestModel model = RandomForestModel.load(sc.sc(), RANDOM_FOREST_PREDICTION_MODEL);
 
             // Until stopped or connection broken continue reading
             while (!isStopped() && !cassandraRowsRDD.rdd().isEmpty()){
 
-                JavaRDD<CassandraRow> data = CassandraQueriesUtils.getLatestAccelerations(cassandraRowsRDD, "TEST_USER", ROWS_NUMBER);
+                JavaRDD<CassandraRow> data = CassandraQueriesUtils.getLatestAccelerations(cassandraRowsRDD, "TEST_USER", ACCELERATION_TOTAL);
                 Vector feature = FeatureService.computeFeatures(data);
 
                 //Get prediction result

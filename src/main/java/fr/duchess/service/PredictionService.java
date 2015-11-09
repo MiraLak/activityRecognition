@@ -3,15 +3,17 @@ package fr.duchess.service;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
+import fr.duchess.model.Acceleration;
 import fr.duchess.model.PredictionResult;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.linalg.Vector;
-import org.apache.spark.mllib.tree.model.DecisionTreeModel;
+import org.apache.spark.mllib.tree.model.RandomForestModel;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.*;
+import org.apache.spark.streaming.kafka.KafkaUtils;
 
 import java.util.*;
 
@@ -20,9 +22,9 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 public class PredictionService {
 
-    public static final String DECISION_TREE_PREDICTION_MODEL = "predictionModel/trainingOne";
-    public static final String RANDOM_FOREST_PREDICTION_MODEL = "predictionModel/RandomForest/trainingOne";
-    public static final long ROWS_NUMBER = 400l; //need 100 for static activity and 400 for moving
+    public static final String DECISION_TREE_PREDICTION_MODEL = "predictionModel/DecisionTree/training_1";
+    public static final String RANDOM_FOREST_PREDICTION_MODEL = "predictionModel/RandomForest/training_acceleration_3";
+    public static final long ACCELERATION_TOTAL = 100l;
     public static final String KEYSPACE = "activityrecognition";
     public static final String RESULT_TABLE = "result";
     public static final String TEST_USER = "TEST_USER";
@@ -40,8 +42,8 @@ public class PredictionService {
         //===================================================
 
         predictWithRealTimeStreaming(sparkConf);
-        predictEachFiveSeconds(sparkConf, DECISION_TREE_PREDICTION_MODEL);
-        predictOnce(sparkConf, DECISION_TREE_PREDICTION_MODEL);
+        //predictEachFiveSeconds(sparkConf, RANDOM_FOREST_PREDICTION_MODEL);
+       //predictOnce(sparkConf, RANDOM_FOREST_PREDICTION_MODEL);
 
     }
 
@@ -52,6 +54,7 @@ public class PredictionService {
      */
     private static void predictActivity(JavaSparkContext javaSparkContext, String modelName) {
         String predictionResult = predict(javaSparkContext, modelName);
+        System.out.println("**************** The predicted activity is: "+predictionResult);
 
         List<PredictionResult> predictions = new ArrayList();
         predictions.add(new PredictionResult(TEST_USER,  new Date().getTime(), predictionResult));
@@ -84,14 +87,15 @@ public class PredictionService {
      */
     public static String predict(JavaSparkContext sc, String modelName) {
 
-        DecisionTreeModel model = DecisionTreeModel.load(sc.sc(), modelName);
-
         // retrieve latestAccelerations from Cassandra and create an CassandraRDD
         CassandraJavaRDD<CassandraRow> cassandraRowsRDD = CassandraJavaUtil.javaFunctions(sc).cassandraTable(KEYSPACE, ACCELERATION_TABLE);
-        JavaRDD<CassandraRow> latestAccelerations = CassandraQueriesUtils.getLatestAccelerations(cassandraRowsRDD,TEST_USER,ROWS_NUMBER);
+        JavaRDD<CassandraRow> latestAccelerations = CassandraQueriesUtils.getLatestAccelerations(cassandraRowsRDD,TEST_USER, ACCELERATION_TOTAL);
 
         //Compute features and predict activity
         Vector features = FeatureService.computeFeatures(latestAccelerations);
+        //DecisionTreeModel model = DecisionTreeModel.load(sc.sc(), modelName);
+        RandomForestModel model = RandomForestModel.load(sc.sc(), modelName);
+
         return FeatureService.predict(model,features);
     }
 

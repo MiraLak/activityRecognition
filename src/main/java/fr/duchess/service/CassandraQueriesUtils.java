@@ -1,22 +1,27 @@
 package fr.duchess.service;
 
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.spark.connector.japi.CassandraRow;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
+import com.datastax.spark.connector.rdd.ReadConf;
 import fr.duchess.model.ActivityType;
 import fr.duchess.model.TimeWindow;
 import org.apache.spark.api.java.JavaRDD;
+import scala.Option;
 
 import java.util.List;
 
 public class CassandraQueriesUtils {
 
     public static JavaRDD<CassandraRow> getLatestAccelerations(CassandraJavaRDD<CassandraRow> cassandraRowsRDD, String user, long maxAcceleration){
+
         return  cassandraRowsRDD
                 .select("timestamp", "x", "y", "z")
                 .where("user_id=?", user)
                 .withDescOrder()
-                .limit(maxAcceleration);
+                .limit(maxAcceleration)
+                .repartition(1);
     }
 
     public static List<String> getUsers(CassandraJavaRDD<CassandraRow> cassandraRowsRDD){

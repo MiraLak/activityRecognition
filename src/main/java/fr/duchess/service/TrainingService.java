@@ -23,9 +23,9 @@ import static fr.duchess.model.ActivityType.*;
 public class TrainingService {
 
     public static final long ONE_SECOND = 100000000;
-    public static final long TWO_SECONDS = 200000000l;
+    public static final long TWO_SECONDS = 500000000l;
     private static final String KEYSPACE = "activityrecognition";
-    private static final String TRAINING_TABLE = "training";
+    private static final String TRAINING_TABLE = "trainingacceleration";
 
     private JavaSparkContext sc;
 
