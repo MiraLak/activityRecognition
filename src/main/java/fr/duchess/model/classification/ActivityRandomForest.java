@@ -6,6 +6,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.regression.LabeledPoint;
+import org.apache.spark.mllib.tree.RandomForest;
 import org.apache.spark.mllib.tree.model.RandomForestModel;
 import scala.Tuple2;
 
@@ -32,9 +33,10 @@ public class ActivityRandomForest {
         String impurity = "gini";
         int maxDepth = 20;
         int maxBins = 32;
+        int randomSeeds = 12345;
 
         // create model
-        RandomForestModel model = org.apache.spark.mllib.tree.RandomForest.trainClassifier(trainingData, numClasses, categoricalFeaturesInfo, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins, 12345);
+        RandomForestModel model = RandomForest.trainClassifier(trainingData, numClasses, categoricalFeaturesInfo, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins, randomSeeds);
         model.save(sc.sc(), "predictionModel/RandomForest/training_acceleration_3");
 
         // Compute classification accuracy on test data

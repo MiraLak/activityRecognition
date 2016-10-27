@@ -1,14 +1,11 @@
 package fr.duchess.service;
 
 
-import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.spark.connector.japi.CassandraRow;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
-import com.datastax.spark.connector.rdd.ReadConf;
 import fr.duchess.model.ActivityType;
 import fr.duchess.model.TimeWindow;
 import org.apache.spark.api.java.JavaRDD;
-import scala.Option;
 
 import java.util.List;
 
